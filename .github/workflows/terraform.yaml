@@ -57,7 +57,7 @@ jobs:
   terraform-apply:
     name: Terraform Apply
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' }} && ${{ github.event.inputs.operation == 'apply' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.operation == 'apply' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -91,7 +91,7 @@ jobs:
   terraform-destroy:
     name: Terraform Destroy
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' }} && ${{ github.event.inputs.operation == 'destroy' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.operation == 'destroy' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

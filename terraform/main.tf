@@ -32,8 +32,6 @@ data "aws_subnet" "default_subnet" {
   id       = each.value
 }
 
-data "aws_availability_zones" "available" {}
-
 locals {
   default_newbit       = tonumber(split("/", data.aws_subnet.default_subnet[data.aws_subnets.default_subnets.ids[0]].cidr_block)[1]) - tonumber(split("/", data.aws_vpc.default.cidr_block)[1])
   num_existing_subnets = length(data.aws_subnets.default_subnets.ids)
@@ -46,7 +44,6 @@ resource "aws_subnet" "private" {
 
   vpc_id            = data.aws_vpc.default.id
   cidr_block        = each.value
-  availability_zone = element(data.aws_availability_zones.available.names, each.key)
 }
 
 module "eks" {
