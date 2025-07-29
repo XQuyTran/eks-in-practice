@@ -7,7 +7,6 @@ on:
       operation:
         description: 'Select operation'
         required: true
-        default: 'apply'
         type: choice
         options:
           - apply
