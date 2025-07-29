@@ -2,7 +2,16 @@ name: Terraform deployment workflow
 
 on:
   push:
-  workflow_dispatch: 
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'Select operation'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+          - apply
+          - destroy
 
 env:
   TF_VERSION: 1.12.2
@@ -13,6 +22,7 @@ permissions:
 
 jobs:
   terraform-plan:
+    name: Terraform Plan
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' }}
     steps:
@@ -46,9 +56,9 @@ jobs:
           path: ./terraform/tfplan
 
   terraform-apply:
+    name: Terraform Apply
     runs-on: ubuntu-latest
-    needs: terraform-plan
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'workflow_dispatch' }} && ${{ github.event.inputs.operation == 'apply' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -72,9 +82,43 @@ jobs:
           mask-aws-account-id: true
 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -backend-config="bucket=${{ vars.TF_BACKEND_BUCKET }}" -backend-config="key=${{ vars.TF_BACKEND_KEY }}" -backend-config="region=${{ vars.AWS_REGION }}"
         working-directory: ./terraform
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
+        working-directory: ./terraform
+
+  terraform-destroy:
+    name: Terraform Destroy
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' }} && ${{ github.event.inputs.operation == 'destroy' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: ./terraform
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ap-southeast-7
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          mask-aws-account-id: true
+
+      - name: Terraform Init
+        run: terraform init -backend-config="bucket=${{ vars.TF_BACKEND_BUCKET }}" -backend-config="key=${{ vars.TF_BACKEND_KEY }}" -backend-config="region=${{ vars.AWS_REGION }}"
+        working-directory: ./terraform
+
+      - name: Terraform Destroy
+        run: terraform apply -destroy -auto-approve
         working-directory: ./terraform

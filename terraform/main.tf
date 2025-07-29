@@ -35,7 +35,7 @@ data "aws_subnet" "default_subnet" {
 data "aws_availability_zones" "available" {}
 
 locals {
-  default_newbit       = tonumber(split("/", data.aws_subnet.default_subnet[0].cidr_block)[1]) - tonumber(split("/", data.aws_vpc.default.cidr_block)[1])
+  default_newbit       = tonumber(split("/", data.aws_subnet.default_subnet[data.aws_subnets.default_subnets.ids[0]].cidr_block)[1]) - tonumber(split("/", data.aws_vpc.default.cidr_block)[1])
   num_existing_subnets = length(data.aws_subnets.default_subnets.ids)
   num_private_subnets  = 2
   proposed_cidrs       = [for i in range(local.num_private_subnets) : cidrsubnet(data.aws_vpc.default.cidr_block, local.default_newbit, local.num_existing_subnets + i)]
