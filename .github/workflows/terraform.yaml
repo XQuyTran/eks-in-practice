@@ -64,6 +64,13 @@ jobs:
           name: tfplan
           path: ./terraform
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ap-southeast-7
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          mask-aws-account-id: true
+
       - name: Terraform Init
         run: terraform init
         working-directory: ./terraform
