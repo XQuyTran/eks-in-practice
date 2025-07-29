@@ -27,12 +27,12 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: ap-southeast-7
+          aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           mask-aws-account-id: true
 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -backend-config="bucket=${{ vars.TF_BACKEND_BUCKET }}" -backend-config="key=${{ vars.TF_BACKEND_KEY }}" -backend-config="region=${{ vars.AWS_REGION }}"
         working-directory: ./terraform
 
       - name: Terraform Plan
