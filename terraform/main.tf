@@ -55,9 +55,10 @@ module "eks" {
   enabled_log_types                      = null
   create_kms_key                         = false
   encryption_config                      = null
-  name                                   = "eks-cluster"
+  name                                   = "deks"
   vpc_id                                 = data.aws_vpc.default.id
   kubernetes_version                     = "1.33"
+  iam_role_use_name_prefix               = false
   
   addons = {
     coredns    = {}
