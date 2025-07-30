@@ -54,6 +54,9 @@ module "eks" {
   cloudwatch_log_group_retention_in_days = 1
   create_kms_key                         = false
   encryption_config                      = null
+  name                                   = "eks-cluster"
+  vpc_id                                 = data.aws_vpc.default.id
+  kubernetes_version                     = "1.33"
   addons = {
     coredns    = {}
     kube-proxy = {}
@@ -68,8 +71,6 @@ module "eks" {
       instance_type = "t3.medium"
     }
   }
-  name   = "eks-cluster"
-  vpc_id = data.aws_vpc.default.id
   subnet_ids = concat(
     slice(data.aws_subnets.default_subnets.ids, 0, local.num_private_subnets),
     [for s in aws_subnet.private : s.id]
