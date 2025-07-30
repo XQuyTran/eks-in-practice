@@ -51,12 +51,14 @@ module "eks" {
   version = "21.0.4"
 
   attach_encryption_policy               = false
-  cloudwatch_log_group_retention_in_days = 1
+  create_cloudwatch_log_group            = false
+  enabled_log_types                      = null
   create_kms_key                         = false
   encryption_config                      = null
   name                                   = "eks-cluster"
   vpc_id                                 = data.aws_vpc.default.id
   kubernetes_version                     = "1.33"
+  
   addons = {
     coredns    = {}
     kube-proxy = {}

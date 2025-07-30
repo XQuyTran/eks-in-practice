@@ -101,12 +101,6 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Download Terraform Plan
-        uses: actions/download-artifact@v4
-        with:
-          name: tfplan
-          path: ./terraform
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
