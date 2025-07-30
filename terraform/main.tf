@@ -46,6 +46,17 @@ resource "aws_subnet" "private" {
   cidr_block = each.value
 }
 
+resource "aws_route_table" "private" {
+  vpc_id = data.aws_vpc.default.id
+}
+
+resource "aws_route_table_association" "private" {
+  for_each = toset(aws_subnet.private.*.id)
+
+  subnet_id      = each.value
+  route_table_id = aws_route_table.private.id
+}
+
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "21.0.4"
@@ -59,7 +70,9 @@ module "eks" {
   vpc_id                                 = data.aws_vpc.default.id
   kubernetes_version                     = "1.33"
   iam_role_use_name_prefix               = false
-  
+  control_plane_subnet_ids               = data.aws_subnets.default_subnets.ids
+  subnet_ids                             = aws_subnet.private.*.id
+
   addons = {
     coredns    = {}
     kube-proxy = {}
@@ -74,9 +87,5 @@ module "eks" {
       instance_type = "t3.medium"
     }
   }
-  subnet_ids = concat(
-    slice(data.aws_subnets.default_subnets.ids, 0, local.num_private_subnets),
-    [for s in aws_subnet.private : s.id]
-  )
 }
 
