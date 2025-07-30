@@ -70,7 +70,7 @@ module "eks" {
   vpc_id = data.aws_vpc.default.id
   subnet_ids = concat(
     slice(data.aws_subnets.default_subnets.ids, 0, local.num_private_subnets),
-    aws_subnet.private[*].id
+    [for s in aws_subnet.private : s.id]
   )
 }
 
