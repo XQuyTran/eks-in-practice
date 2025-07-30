@@ -51,7 +51,7 @@ resource "aws_route_table" "private" {
 }
 
 resource "aws_route_table_association" "private" {
-  for_each = toset(aws_subnet.private.*.id)
+  for_each = {for subnet in aws_subnet.private : subnet.cidr_block => subnet.id}
 
   subnet_id      = each.value
   route_table_id = aws_route_table.private.id
@@ -71,7 +71,7 @@ module "eks" {
   kubernetes_version                     = "1.33"
   iam_role_use_name_prefix               = false
   control_plane_subnet_ids               = data.aws_subnets.default_subnets.ids
-  subnet_ids                             = aws_subnet.private.*.id
+  subnet_ids                             = [for subnet in aws_subnet.private : subnet.id]
 
   addons = {
     coredns    = {}
@@ -88,4 +88,3 @@ module "eks" {
     }
   }
 }
-
