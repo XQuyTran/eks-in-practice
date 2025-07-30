@@ -6,9 +6,9 @@ terraform {
     }
   }
   backend "s3" {
-    bucket         = ""
-    key            = ""
-    region         = ""
+    bucket = ""
+    key    = ""
+    region = ""
   }
 }
 
@@ -42,21 +42,23 @@ locals {
 resource "aws_subnet" "private" {
   for_each = toset(local.proposed_cidrs)
 
-  vpc_id            = data.aws_vpc.default.id
-  cidr_block        = each.value
+  vpc_id     = data.aws_vpc.default.id
+  cidr_block = each.value
 }
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "21.0.4"
 
+  attach_encryption_policy               = false
+  cloudwatch_log_group_retention_in_days = 1
+  create_kms_key                         = false
+  encryption_config                      = null
   addons = {
     coredns    = {}
     kube-proxy = {}
     vpc-cni    = {}
   }
-  cloudwatch_log_group_retention_in_days = 1
-  create_kms_key                         = false
   eks_managed_node_groups = {
     eks_nodes = {
       desired_capacity = 1
