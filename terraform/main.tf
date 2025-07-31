@@ -82,17 +82,11 @@ module "eks" {
   eks_managed_node_groups = {
     eks_nodes = {
       instance_types   = ["t3.medium"]
+      capacity_type    = "SPOT"
       disk_size        = 8
       desired_capacity = 1
       max_capacity     = 2
       min_capacity     = 1
-
-      instance_market_options = {
-        market_type = "spot"
-        spot_options = {
-          spot_instance_type = "one-time"
-        }
-      }
     }
   }
 }
