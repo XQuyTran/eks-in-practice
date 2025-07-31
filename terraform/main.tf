@@ -51,7 +51,7 @@ resource "aws_route_table" "private" {
 }
 
 resource "aws_route_table_association" "private" {
-  for_each = {for subnet in aws_subnet.private : subnet.cidr_block => subnet.id}
+  for_each = { for subnet in aws_subnet.private : subnet.cidr_block => subnet.id }
 
   subnet_id      = each.value
   route_table_id = aws_route_table.private.id
@@ -61,18 +61,18 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "21.0.4"
 
-  attach_encryption_policy               = false
-  create_cloudwatch_log_group            = false
-  enabled_log_types                      = null
-  create_kms_key                         = false
-  encryption_config                      = null
-  name                                   = "deks"
-  vpc_id                                 = data.aws_vpc.default.id
-  kubernetes_version                     = "1.33"
-  iam_role_use_name_prefix               = false
-  control_plane_subnet_ids               = data.aws_subnets.default_subnets.ids
-  subnet_ids                             = [for subnet in aws_subnet.private : subnet.id]
-  endpoint_public_access                 = true
+  attach_encryption_policy    = false
+  create_cloudwatch_log_group = false
+  enabled_log_types           = null
+  create_kms_key              = false
+  encryption_config           = null
+  name                        = "deks"
+  vpc_id                      = data.aws_vpc.default.id
+  kubernetes_version          = "1.33"
+  iam_role_use_name_prefix    = false
+  control_plane_subnet_ids    = data.aws_subnets.default_subnets.ids
+  subnet_ids                  = [for subnet in aws_subnet.private : subnet.id]
+  endpoint_public_access      = true
 
   addons = {
     coredns    = {}
@@ -81,7 +81,8 @@ module "eks" {
   }
   eks_managed_node_groups = {
     eks_nodes = {
-      disk_size = 8
+      instance_types   = ["t3.medium"]
+      disk_size        = 8
       desired_capacity = 1
       max_capacity     = 2
       min_capacity     = 1
@@ -89,7 +90,7 @@ module "eks" {
       instance_market_options = {
         market_type = "spot"
         spot_options = {
-          spot_instance_type = "t3.medium"
+          spot_instance_type = "one-time"
         }
       }
     }
