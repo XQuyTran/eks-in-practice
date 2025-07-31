@@ -84,9 +84,9 @@ module "eks" {
       instance_types   = ["t3.medium"]
       capacity_type    = "SPOT"
       disk_size        = 8
-      desired_capacity = 1
-      max_capacity     = 2
-      min_capacity     = 1
+      min_size         = 1
+      max_size         = 2
+      desired_size     = 1
     }
   }
 }
