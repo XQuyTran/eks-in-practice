@@ -58,7 +58,16 @@ jobs:
     name: Terraform Apply
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.operation == 'apply' }}
+    permissions:
+      actions: read
     steps:
+      - name: Get latest Terraform Plan
+        id: get_plan
+        run: |
+          echo "Fetching latest Terraform plan artifact..."
+          run_id=$(gh run list --limit 1 --status success --workflow ${{ github.workflow }} --json databaseId | jq -r '.[0].databaseId')
+          echo "run_id=${run_id}" >> $GITHUB_OUTPUT
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -72,6 +81,7 @@ jobs:
         with:
           name: tfplan
           path: ./terraform
+          run-id: ${{ steps.get_plan.outputs.run_id }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
