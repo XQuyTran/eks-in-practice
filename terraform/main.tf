@@ -72,6 +72,7 @@ module "eks" {
   iam_role_use_name_prefix               = false
   control_plane_subnet_ids               = data.aws_subnets.default_subnets.ids
   subnet_ids                             = [for subnet in aws_subnet.private : subnet.id]
+  endpoint_public_access                 = true
 
   addons = {
     coredns    = {}
@@ -84,7 +85,9 @@ module "eks" {
       max_capacity     = 2
       min_capacity     = 1
 
-      instance_type = "t3.medium"
+      spot_options = {
+        spot_instance_type = "t3.medium"
+      }
     }
   }
 }
