@@ -84,6 +84,7 @@ jobs:
           name: tfplan
           path: ./terraform
           run-id: ${{ steps.get_plan.outputs.run_id }}
+          github-token: ${{ github.token }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
