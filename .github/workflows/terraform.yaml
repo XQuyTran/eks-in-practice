@@ -67,6 +67,8 @@ jobs:
           echo "Fetching latest Terraform plan artifact..."
           run_id=$(gh run list --limit 1 --status success --workflow "${{ github.workflow }}" --json databaseId --jq '.[0].databaseId')
           echo "run_id=${run_id}" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Checkout
         uses: actions/checkout@v4
