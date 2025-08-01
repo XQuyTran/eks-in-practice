@@ -18,6 +18,7 @@ env:
 permissions:
   contents: read
   id-token: write
+  actions: read
 
 jobs:
   terraform-plan:
@@ -58,8 +59,6 @@ jobs:
     name: Terraform Apply
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.operation == 'apply' }}
-    permissions:
-      actions: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
