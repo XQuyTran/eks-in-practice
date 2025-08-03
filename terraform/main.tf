@@ -72,7 +72,6 @@ module "eks" {
   attach_encryption_policy    = false
   create_cloudwatch_log_group = false
   create_iam_role             = false
-  create_node_iam_role        = false
   enabled_log_types           = null
   create_kms_key              = false
   encryption_config           = null
@@ -86,19 +85,20 @@ module "eks" {
   iam_role_arn                = data.aws_iam_role.cluster_role.arn
 
   addons = {
-    coredns    = {}
-    kube-proxy = {}
-    vpc-cni    = {}
+    coredns                = {}
+    kube-proxy             = {}
+    vpc-cni                = {}
     eks-pod-identity-agent = {}
   }
   eks_managed_node_groups = {
     eks_nodes = {
-      instance_types   = ["t3.medium"]
-      capacity_type    = "SPOT"
-      disk_size        = 8
-      min_size         = 1
-      max_size         = 2
-      desired_size     = 1
+      instance_types  = ["t3.medium"]
+      capacity_type   = "SPOT"
+      disk_size       = 8
+      min_size        = 1
+      max_size        = 2
+      desired_size    = 1
+      create_iam_role = false
       iam_role_arn    = data.aws_iam_role.node_role.arn
     }
   }
