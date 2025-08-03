@@ -32,6 +32,14 @@ data "aws_subnet" "default_subnet" {
   id       = each.value
 }
 
+data "aws_iam_role" "cluster_role" {
+  name = "AmazonEKSClusterRole"
+}
+
+data "aws_iam_role" "node_role" {
+  name = "AmazonEKSNodeRole"
+}
+
 locals {
   default_newbit       = tonumber(split("/", data.aws_subnet.default_subnet[data.aws_subnets.default_subnets.ids[0]].cidr_block)[1]) - tonumber(split("/", data.aws_vpc.default.cidr_block)[1])
   num_existing_subnets = length(data.aws_subnets.default_subnets.ids)
@@ -63,6 +71,8 @@ module "eks" {
 
   attach_encryption_policy    = false
   create_cloudwatch_log_group = false
+  create_iam_role             = false
+  create_node_iam_role        = false
   enabled_log_types           = null
   create_kms_key              = false
   encryption_config           = null
@@ -73,6 +83,7 @@ module "eks" {
   control_plane_subnet_ids    = data.aws_subnets.default_subnets.ids
   subnet_ids                  = [for subnet in aws_subnet.private : subnet.id]
   endpoint_public_access      = true
+  iam_role_arn                = data.aws_iam_role.cluster_role.arn
 
   addons = {
     coredns    = {}
@@ -87,6 +98,7 @@ module "eks" {
       min_size         = 1
       max_size         = 2
       desired_size     = 1
+      iam_role_arn    = data.aws_iam_role.node_role.arn
     }
   }
 }
