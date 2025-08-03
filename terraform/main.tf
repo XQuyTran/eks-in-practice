@@ -89,6 +89,7 @@ module "eks" {
     coredns    = {}
     kube-proxy = {}
     vpc-cni    = {}
+    eks-pod-identity-agent = {}
   }
   eks_managed_node_groups = {
     eks_nodes = {
