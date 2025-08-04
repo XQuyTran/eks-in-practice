@@ -158,7 +158,7 @@ module "eks" {
       max_size        = 2
       desired_size    = 1
       create_iam_role = false
-      iam_role_arn    = data.aws_iam_role.node_role.arn
+      iam_role_arn    = aws_iam_role.node_role.arn
     }
   }
 }
