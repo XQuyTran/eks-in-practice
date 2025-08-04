@@ -12,9 +12,7 @@ terraform {
   }
 }
 
-provider "aws" {
-
-}
+provider "aws" {}
 
 data "aws_vpc" "default" {
   default = true
@@ -36,8 +34,69 @@ data "aws_iam_role" "cluster_role" {
   name = "AmazonEKSClusterRole"
 }
 
-data "aws_iam_role" "node_role" {
-  name = "AmazonEKSNodeRole"
+data "aws_caller_identity" "current" {}
+
+data "aws_iam_policy_document" "worker_trust" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "node_role" {
+  name               = "AmazonEKSNodeIRSARole"
+  assume_role_policy = data.aws_iam_policy_document.worker_trust.json
+}
+
+resource "aws_iam_role_policy_attachment" "worker_policy" {
+  for_each = toset([
+    "AmazonEKSWorkerNodePolicy",
+    "AmazonEC2ContainerRegistryReadOnly"
+  ])
+
+  role       = aws_iam_role.node_role.name
+  policy_arn = "arn:aws:iam::aws:policy/${each.value}"
+}
+
+data "aws_iam_policy_document" "cluster_oidc_trust" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    effect = "Allow"
+
+    principals {
+      type        = "Federated"
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:aws:oidc-provider/${module.eks.oidc_provider}"]
+    }
+    
+    condition {
+      test = "StringEquals"
+      variable = "${module.eks.oidc_provider}:sub"
+      values = ["system:serviceaccount:kube-system:aws-node"]
+    }
+
+    condition {
+      test = "StringEquals"
+      variable = "${module.eks.oidc_provider}:aud"
+      values = ["sts.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "eks_vpc_cni_role" {
+  name               = "AmazonEKSVPCCNIRole"
+  assume_role_policy = data.aws_iam_policy_document.cluster_oidc_trust.json
+}
+
+resource "aws_iam_role_policy_attachment" "vpc_cni" {
+  role       = aws_iam_role.eks_vpc_cni_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 }
 
 locals {
