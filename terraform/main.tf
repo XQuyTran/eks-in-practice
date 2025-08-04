@@ -131,6 +131,7 @@ module "eks" {
   attach_encryption_policy    = false
   create_cloudwatch_log_group = false
   create_iam_role             = false
+  authentication_mode         = "API"
   enabled_log_types           = null
   create_kms_key              = false
   encryption_config           = null
