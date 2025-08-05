@@ -87,8 +87,6 @@ data "aws_iam_policy_document" "cluster_oidc_trust" {
       values = ["sts.amazonaws.com"]
     }
   }
-
-  depends_on = [ module.eks.aws_iam_openid_connect_provider.oidc_provider[0] ]
 }
 
 resource "aws_iam_role" "eks_vpc_cni_role" {

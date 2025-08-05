@@ -12,6 +12,10 @@ on:
           - plan
           - apply
           - destroy
+      tfargs:
+        description: 'Additional Terraform arguments'
+        required: false
+        type: string
 
 env:
   TF_VERSION: 1.12.2
@@ -47,7 +51,7 @@ jobs:
         working-directory: ./terraform
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
+        run: terraform plan -out=tfplan ${{ github.event.inputs.tfargs }}
         working-directory: ./terraform
       
       - name: Upload Terraform Plan
