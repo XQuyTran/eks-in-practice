@@ -128,6 +128,19 @@ resource "aws_route_table_association" "private" {
   route_table_id = aws_route_table.private.id
 }
 
+resource "aws_eip" "nat_ip" {}
+
+resource "aws_nat_gateway" "nat" {
+  subnet_id     = data.aws_subnets.default_subnets.ids[0]
+  allocation_id = aws_eip.nat_ip.allocation_id
+}
+
+resource "aws_route" "nat_route" {
+  route_table_id         = aws_route_table.private.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat.id
+}
+
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "21.0.4"
@@ -159,7 +172,6 @@ module "eks" {
     eks_nodes = {
       instance_types  = ["t3.medium"]
       capacity_type   = "SPOT"
-      disk_size       = 20
       min_size        = 1
       max_size        = 2
       desired_size    = 1
