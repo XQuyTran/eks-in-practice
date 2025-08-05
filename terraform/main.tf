@@ -34,6 +34,10 @@ data "aws_iam_role" "cluster_role" {
   name = "AmazonEKSClusterRole"
 }
 
+data "aws_iam_role" "node_role" {
+  name = "AmazonEKSNodeRole"
+}
+
 data "aws_caller_identity" "current" {}
 
 data "aws_iam_policy_document" "worker_trust" {
@@ -49,7 +53,7 @@ data "aws_iam_policy_document" "worker_trust" {
   }
 }
 
-resource "aws_iam_role" "node_role" {
+resource "aws_iam_role" "node_irsa_role" {
   name               = "AmazonEKSNodeIRSARole"
   assume_role_policy = data.aws_iam_policy_document.worker_trust.json
 }
@@ -159,7 +163,7 @@ module "eks" {
       max_size        = 2
       desired_size    = 1
       create_iam_role = false
-      iam_role_arn    = aws_iam_role.node_role.arn
+      iam_role_arn    = data.aws_iam_role.node_role.arn
     }
   }
 }
