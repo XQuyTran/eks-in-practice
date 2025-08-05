@@ -113,12 +113,6 @@ resource "aws_subnet" "private" {
 
   vpc_id     = data.aws_vpc.default.id
   cidr_block = each.value
-  
-  lifecycle {
-    ignore_changes = [
-      local.proposed_cidrs
-    ]
-  }
 }
 
 resource "aws_route_table" "private" {
