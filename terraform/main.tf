@@ -88,7 +88,7 @@ data "aws_iam_policy_document" "cluster_oidc_trust" {
     }
   }
 
-  depends_on = [ module.eks.oidc_provider ]
+  depends_on = [ module.eks.aws_iam_openid_connect_provider.oidc_provider[0] ]
 }
 
 resource "aws_iam_role" "eks_vpc_cni_role" {
@@ -113,6 +113,12 @@ resource "aws_subnet" "private" {
 
   vpc_id     = data.aws_vpc.default.id
   cidr_block = each.value
+  
+  lifecycle {
+    ignore_changes = [
+      local.proposed_cidrs
+    ]
+  }
 }
 
 resource "aws_route_table" "private" {
