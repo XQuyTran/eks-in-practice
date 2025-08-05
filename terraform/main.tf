@@ -25,10 +25,10 @@ data "aws_subnets" "default_subnets" {
   }
 }
 
-data "aws_subnet" "default_subnet" {
-  for_each = toset(data.aws_subnets.default_subnets.ids)
-  id       = each.value
-}
+# data "aws_subnet" "default_subnet" {
+#   for_each = toset(data.aws_subnets.default_subnets.ids)
+#   id       = each.value
+# }
 
 data "aws_iam_role" "cluster_role" {
   name = "AmazonEKSClusterRole"
@@ -103,15 +103,15 @@ resource "aws_iam_role_policy_attachment" "vpc_cni" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 }
 
-locals {
-  default_newbit       = tonumber(split("/", data.aws_subnet.default_subnet[data.aws_subnets.default_subnets.ids[0]].cidr_block)[1]) - tonumber(split("/", data.aws_vpc.default.cidr_block)[1])
-  num_existing_subnets = length(data.aws_subnets.default_subnets.ids)
-  num_private_subnets  = 2
-  proposed_cidrs       = [for i in range(local.num_private_subnets) : cidrsubnet(data.aws_vpc.default.cidr_block, local.default_newbit, local.num_existing_subnets + i)]
-}
+# locals {
+#   default_newbit       = tonumber(split("/", data.aws_subnet.default_subnet[data.aws_subnets.default_subnets.ids[0]].cidr_block)[1]) - tonumber(split("/", data.aws_vpc.default.cidr_block)[1])
+#   num_existing_subnets = length(data.aws_subnets.default_subnets.ids)
+#   num_private_subnets  = 2
+#   proposed_cidrs       = [for i in range(local.num_private_subnets) : cidrsubnet(data.aws_vpc.default.cidr_block, local.default_newbit, local.num_existing_subnets + i)]
+# }
 
 resource "aws_subnet" "private" {
-  for_each = toset(local.proposed_cidrs)
+  for_each = toset(["172.31.48.0/20", "172.31.64.0/20"])
 
   vpc_id     = data.aws_vpc.default.id
   cidr_block = each.value
@@ -137,6 +137,7 @@ module "eks" {
   create_iam_role                        = false
   authentication_mode                    = "API"
   cloudwatch_log_group_retention_in_days = 1
+  enabled_log_types                      = ["api", "authenticator"]
   create_kms_key                         = false
   encryption_config                      = null
   name                                   = "deks"
@@ -158,7 +159,7 @@ module "eks" {
     eks_nodes = {
       instance_types  = ["t3.medium"]
       capacity_type   = "SPOT"
-      disk_size       = 8
+      disk_size       = 20
       min_size        = 1
       max_size        = 2
       desired_size    = 1
