@@ -87,6 +87,8 @@ data "aws_iam_policy_document" "cluster_oidc_trust" {
       values = ["sts.amazonaws.com"]
     }
   }
+
+  depends_on = [ module.eks.aws_iam_openid_connect_provider.oidc_provider ]
 }
 
 resource "aws_iam_role" "eks_vpc_cni_role" {
@@ -121,7 +123,7 @@ resource "aws_route_table_association" "private" {
   for_each = { for subnet in aws_subnet.private : subnet.cidr_block => subnet.id }
 
   subnet_id      = each.value
-  route_table_id = aws_route_table.private.id
+  route_table_id = aws_route_table.private.id  
 }
 
 module "eks" {
@@ -132,7 +134,7 @@ module "eks" {
   create_cloudwatch_log_group = false
   create_iam_role             = false
   authentication_mode         = "API"
-  enabled_log_types           = null
+  cloudwatch_log_group_retention_in_days = 1
   create_kms_key              = false
   encryption_config           = null
   name                        = "deks"
