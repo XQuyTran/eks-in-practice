@@ -88,7 +88,7 @@ data "aws_iam_policy_document" "cluster_oidc_trust" {
     }
   }
 
-  depends_on = [ module.eks.aws_iam_openid_connect_provider.oidc_provider ]
+  depends_on = [ module.eks.oidc_provider ]
 }
 
 resource "aws_iam_role" "eks_vpc_cni_role" {
