@@ -64,7 +64,7 @@ resource "aws_iam_role_policy_attachment" "worker_policy" {
     "AmazonEC2ContainerRegistryReadOnly"
   ])
 
-  role       = aws_iam_role.node_role.name
+  role       = aws_iam_role.node_irsa_role.name
   policy_arn = "arn:aws:iam::aws:policy/${each.value}"
 }
 
@@ -78,17 +78,17 @@ data "aws_iam_policy_document" "cluster_oidc_trust" {
       type        = "Federated"
       identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:aws:oidc-provider/${module.eks.oidc_provider}"]
     }
-    
+
     condition {
-      test = "StringEquals"
+      test     = "StringEquals"
       variable = "${module.eks.oidc_provider}:sub"
-      values = ["system:serviceaccount:kube-system:aws-node"]
+      values   = ["system:serviceaccount:kube-system:aws-node"]
     }
 
     condition {
-      test = "StringEquals"
+      test     = "StringEquals"
       variable = "${module.eks.oidc_provider}:aud"
-      values = ["sts.amazonaws.com"]
+      values   = ["sts.amazonaws.com"]
     }
   }
 }
@@ -125,28 +125,28 @@ resource "aws_route_table_association" "private" {
   for_each = { for subnet in aws_subnet.private : subnet.cidr_block => subnet.id }
 
   subnet_id      = each.value
-  route_table_id = aws_route_table.private.id  
+  route_table_id = aws_route_table.private.id
 }
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "21.0.4"
 
-  attach_encryption_policy    = false
-  create_cloudwatch_log_group = false
-  create_iam_role             = false
-  authentication_mode         = "API"
+  attach_encryption_policy               = false
+  create_cloudwatch_log_group            = false
+  create_iam_role                        = false
+  authentication_mode                    = "API"
   cloudwatch_log_group_retention_in_days = 1
-  create_kms_key              = false
-  encryption_config           = null
-  name                        = "deks"
-  vpc_id                      = data.aws_vpc.default.id
-  kubernetes_version          = "1.33"
-  iam_role_use_name_prefix    = false
-  control_plane_subnet_ids    = data.aws_subnets.default_subnets.ids
-  subnet_ids                  = [for subnet in aws_subnet.private : subnet.id]
-  endpoint_public_access      = true
-  iam_role_arn                = data.aws_iam_role.cluster_role.arn
+  create_kms_key                         = false
+  encryption_config                      = null
+  name                                   = "deks"
+  vpc_id                                 = data.aws_vpc.default.id
+  kubernetes_version                     = "1.33"
+  iam_role_use_name_prefix               = false
+  control_plane_subnet_ids               = data.aws_subnets.default_subnets.ids
+  subnet_ids                             = [for subnet in aws_subnet.private : subnet.id]
+  endpoint_public_access                 = true
+  iam_role_arn                           = data.aws_iam_role.cluster_role.arn
 
   addons = {
     coredns                = {}
