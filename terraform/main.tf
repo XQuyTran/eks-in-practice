@@ -53,21 +53,6 @@ data "aws_iam_policy_document" "worker_trust" {
   }
 }
 
-resource "aws_iam_role" "node_irsa_role" {
-  name               = "AmazonEKSNodeIRSARole"
-  assume_role_policy = data.aws_iam_policy_document.worker_trust.json
-}
-
-resource "aws_iam_role_policy_attachment" "worker_policy" {
-  for_each = toset([
-    "AmazonEKSWorkerNodePolicy",
-    "AmazonEC2ContainerRegistryReadOnly"
-  ])
-
-  role       = aws_iam_role.node_irsa_role.name
-  policy_arn = "arn:aws:iam::aws:policy/${each.value}"
-}
-
 data "aws_iam_policy_document" "cluster_oidc_trust" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
@@ -82,7 +67,7 @@ data "aws_iam_policy_document" "cluster_oidc_trust" {
     condition {
       test     = "StringEquals"
       variable = "${module.eks.oidc_provider}:sub"
-      values   = ["system:serviceaccount:kube-system:aws-node"]
+      values   = ["system:serviceaccount:kube-system:s3-readonly-account"]
     }
 
     condition {
@@ -91,16 +76,6 @@ data "aws_iam_policy_document" "cluster_oidc_trust" {
       values   = ["sts.amazonaws.com"]
     }
   }
-}
-
-resource "aws_iam_role" "eks_vpc_cni_role" {
-  name               = "AmazonEKSVPCCNIRole"
-  assume_role_policy = data.aws_iam_policy_document.cluster_oidc_trust.json
-}
-
-resource "aws_iam_role_policy_attachment" "vpc_cni" {
-  role       = aws_iam_role.eks_vpc_cni_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 }
 
 # locals {
@@ -167,6 +142,7 @@ module "eks" {
     kube-proxy             = {}
     vpc-cni                = {}
     eks-pod-identity-agent = {}
+    metrics-server         = {}
   }
   eks_managed_node_groups = {
     eks_nodes = {
