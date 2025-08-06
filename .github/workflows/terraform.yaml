@@ -102,7 +102,7 @@ jobs:
         working-directory: ./terraform
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve tfplan
         working-directory: ./terraform
 
   terraform-destroy:
