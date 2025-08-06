@@ -43,7 +43,7 @@ data "aws_iam_policy_document" "cluster_oidc_trust" {
 
 resource "aws_iam_role" "s3_readonly_role" {
   name               = "EKSPodS3ReadOnlyRole"
-  assume_role_policy = data.aws_iam_policy_document.worker_trust.json
+  assume_role_policy = data.aws_iam_policy_document.cluster_oidc_trust.json
 }
 
 resource "aws_iam_role_policy_attachment" "s3_readonly" {
