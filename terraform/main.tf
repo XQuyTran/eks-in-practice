@@ -14,44 +14,7 @@ terraform {
 
 provider "aws" {}
 
-data "aws_vpc" "default" {
-  default = true
-}
-
-data "aws_subnets" "default_subnets" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
-}
-
-# data "aws_subnet" "default_subnet" {
-#   for_each = toset(data.aws_subnets.default_subnets.ids)
-#   id       = each.value
-# }
-
-data "aws_iam_role" "cluster_role" {
-  name = "AmazonEKSClusterRole"
-}
-
-data "aws_iam_role" "node_role" {
-  name = "AmazonEKSNodeRole"
-}
-
 data "aws_caller_identity" "current" {}
-
-data "aws_iam_policy_document" "worker_trust" {
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    effect = "Allow"
-
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
-    }
-  }
-}
 
 data "aws_iam_policy_document" "cluster_oidc_trust" {
   statement {
@@ -67,7 +30,7 @@ data "aws_iam_policy_document" "cluster_oidc_trust" {
     condition {
       test     = "StringEquals"
       variable = "${module.eks.oidc_provider}:sub"
-      values   = ["system:serviceaccount:kube-system:s3-readonly-account"]
+      values   = ["system:serviceaccount:default:s3-readonly-account"]
     }
 
     condition {
@@ -78,13 +41,26 @@ data "aws_iam_policy_document" "cluster_oidc_trust" {
   }
 }
 
-# locals {
-#   default_newbit       = tonumber(split("/", data.aws_subnet.default_subnet[data.aws_subnets.default_subnets.ids[0]].cidr_block)[1]) - tonumber(split("/", data.aws_vpc.default.cidr_block)[1])
-#   num_existing_subnets = length(data.aws_subnets.default_subnets.ids)
-#   num_private_subnets  = 2
-#   proposed_cidrs       = [for i in range(local.num_private_subnets) : cidrsubnet(data.aws_vpc.default.cidr_block, local.default_newbit, local.num_existing_subnets + i)]
-# }
+resource "aws_iam_role" "s3_readonly_role" {
+  name               = "EKSPodS3ReadOnlyRole"
+  assume_role_policy = data.aws_iam_policy_document.worker_trust.json
+}
 
+resource "aws_iam_role_policy_attachment" "s3_readonly" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+  role       = aws_iam_role.s3_readonly_role.name
+}
+
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "default_subnets" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
 resource "aws_subnet" "private" {
   for_each = toset(["172.31.48.0/20", "172.31.64.0/20"])
 
@@ -116,6 +92,13 @@ resource "aws_route" "nat_route" {
   nat_gateway_id         = aws_nat_gateway.nat.id
 }
 
+data "aws_iam_role" "cluster_role" {
+  name = "AmazonEKSClusterRole"
+}
+
+data "aws_iam_role" "node_role" {
+  name = "AmazonEKSNodeRole"
+}
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "21.0.4"
@@ -137,13 +120,13 @@ module "eks" {
   endpoint_public_access                 = true
   iam_role_arn                           = data.aws_iam_role.cluster_role.arn
 
-  addons = {
-    coredns                = {}
-    kube-proxy             = {}
-    vpc-cni                = {}
-    eks-pod-identity-agent = {}
-    metrics-server         = {}
-  }
+  # addons = {
+  #   coredns                = {}
+  #   kube-proxy             = {}
+  #   vpc-cni                = {}
+  #   eks-pod-identity-agent = {}
+  #   metrics-server         = {}
+  # }
   eks_managed_node_groups = {
     eks_nodes = {
       instance_types  = ["t3.medium"]
