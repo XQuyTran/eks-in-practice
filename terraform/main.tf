@@ -140,6 +140,7 @@ module "eks" {
   eks_managed_node_groups = {
     eks_nodes = {
       instance_types  = ["t4g.small"]
+      ami_type        = "AL2023_ARM_64_STANDARD"
       disk_size       = 20
       capacity_type   = "SPOT"
       min_size        = 1
