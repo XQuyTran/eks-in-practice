@@ -11,7 +11,7 @@ terraform {
     region = ""
   }
   # backend "local" {
-    
+
   # }
 }
 
@@ -120,24 +120,20 @@ module "eks" {
   iam_role_use_name_prefix               = false
   control_plane_subnet_ids               = data.aws_subnets.default_subnets.ids
   # subnet_ids                             = [for subnet in aws_subnet.private : subnet.id]
-  subnet_ids                             = data.aws_subnets.default_subnets.ids
-  endpoint_public_access                 = true
-  iam_role_arn                           = data.aws_iam_role.cluster_role.arn
+  subnet_ids             = data.aws_subnets.default_subnets.ids
+  endpoint_public_access = true
+  iam_role_arn           = data.aws_iam_role.cluster_role.arn
 
   addons = {
-    coredns                = {
+    coredns        = {}
+    metrics-server = {}
+    kube-proxy = {
       before_compute = true
     }
-    kube-proxy             = {
-      before_compute = true
-    }
-    vpc-cni                = {
+    vpc-cni = {
       before_compute = true
     }
     eks-pod-identity-agent = {
-      before_compute = true
-    }
-    metrics-server         = {
       before_compute = true
     }
   }

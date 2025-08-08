@@ -118,7 +118,7 @@ jobs:
         run: kubectl apply -f k8s-manifests/
 
   destroy:
-    name: Terraform Destroy
+    name: Destroy
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.operation == 'destroy' }}
     steps:
