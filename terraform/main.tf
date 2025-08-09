@@ -106,7 +106,7 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "21.0.4"
 
-  create_cloudwatch_log_group            = false
+  enabled_log_types                      = ["api"]
   create_iam_role                        = false
   authentication_mode                    = "API"
   create_kms_key                         = false
@@ -136,8 +136,7 @@ module "eks" {
   }
   eks_managed_node_groups = {
     eks_nodes = {
-      instance_types  = ["t4g.medium"]
-      ami_type        = "AL2023_ARM_64_STANDARD"
+      instance_types  = ["t3.medium"]
       disk_size       = 20
       capacity_type   = "SPOT"
       min_size        = 1
