@@ -19,40 +19,40 @@ provider "aws" {}
 
 data "aws_caller_identity" "current" {}
 
-data "aws_iam_policy_document" "cluster_oidc_trust" {
-  statement {
-    actions = ["sts:AssumeRoleWithWebIdentity"]
+# data "aws_iam_policy_document" "cluster_oidc_trust" {
+#   statement {
+#     actions = ["sts:AssumeRoleWithWebIdentity"]
 
-    effect = "Allow"
+#     effect = "Allow"
 
-    principals {
-      type        = "Federated"
-      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:aws:oidc-provider/${module.eks.oidc_provider}"]
-    }
+#     principals {
+#       type        = "Federated"
+#       identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:aws:oidc-provider/${module.eks.oidc_provider}"]
+#     }
 
-    condition {
-      test     = "StringEquals"
-      variable = "${module.eks.oidc_provider}:sub"
-      values   = ["system:serviceaccount:default:s3-readonly-account"]
-    }
+#     condition {
+#       test     = "StringEquals"
+#       variable = "${module.eks.oidc_provider}:sub"
+#       values   = ["system:serviceaccount:default:s3-readonly-account"]
+#     }
 
-    condition {
-      test     = "StringEquals"
-      variable = "${module.eks.oidc_provider}:aud"
-      values   = ["sts.amazonaws.com"]
-    }
-  }
-}
+#     condition {
+#       test     = "StringEquals"
+#       variable = "${module.eks.oidc_provider}:aud"
+#       values   = ["sts.amazonaws.com"]
+#     }
+#   }
+# }
 
-resource "aws_iam_role" "s3_readonly_role" {
-  name               = "EKSPodS3ReadOnlyRole"
-  assume_role_policy = data.aws_iam_policy_document.cluster_oidc_trust.json
-}
+# resource "aws_iam_role" "s3_readonly_role" {
+#   name               = "EKSPodS3ReadOnlyRole"
+#   assume_role_policy = data.aws_iam_policy_document.cluster_oidc_trust.json
+# }
 
-resource "aws_iam_role_policy_attachment" "s3_readonly" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
-  role       = aws_iam_role.s3_readonly_role.name
-}
+# resource "aws_iam_role_policy_attachment" "s3_readonly" {
+#   policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+#   role       = aws_iam_role.s3_readonly_role.name
+# }
 
 data "aws_vpc" "default" {
   default = true
