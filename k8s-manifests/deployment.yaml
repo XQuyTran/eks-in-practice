@@ -15,7 +15,6 @@ spec:
       labels:
         app: nginx-deployment
     spec:
-      serviceAccountName: s3-readonly-account
       containers:
       - name: nginx
         image: nginx:latest

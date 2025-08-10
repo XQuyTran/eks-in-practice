@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: awscli
+  labels:
+    app.kubernetes.io/name: awscli
+spec:
+  serviceAccountName: s3-readonly-account
+  containers:
+  - name: awscli
+    image: amazon/aws-cli:latest
+    resources:
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+      requests:
+        memory: "64Mi"
+        cpu: "250m"
+    args:
+      - s3
+      - ls
+      - s3://nttfiac
+
