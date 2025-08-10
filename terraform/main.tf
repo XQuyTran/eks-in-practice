@@ -15,44 +15,14 @@ terraform {
   # }
 }
 
+variable "user_name" {
+  description = "The name of the IAM user to grant access to the EKS cluster"
+  type        = string
+}
+
 provider "aws" {}
 
 data "aws_caller_identity" "current" {}
-
-# data "aws_iam_policy_document" "cluster_oidc_trust" {
-#   statement {
-#     actions = ["sts:AssumeRoleWithWebIdentity"]
-
-#     effect = "Allow"
-
-#     principals {
-#       type        = "Federated"
-#       identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:aws:oidc-provider/${module.eks.oidc_provider}"]
-#     }
-
-#     condition {
-#       test     = "StringEquals"
-#       variable = "${module.eks.oidc_provider}:sub"
-#       values   = ["system:serviceaccount:default:s3-readonly-account"]
-#     }
-
-#     condition {
-#       test     = "StringEquals"
-#       variable = "${module.eks.oidc_provider}:aud"
-#       values   = ["sts.amazonaws.com"]
-#     }
-#   }
-# }
-
-# resource "aws_iam_role" "s3_readonly_role" {
-#   name               = "EKSPodS3ReadOnlyRole"
-#   assume_role_policy = data.aws_iam_policy_document.cluster_oidc_trust.json
-# }
-
-# resource "aws_iam_role_policy_attachment" "s3_readonly" {
-#   policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
-#   role       = aws_iam_role.s3_readonly_role.name
-# }
 
 data "aws_vpc" "default" {
   default = true
@@ -145,5 +115,17 @@ module "eks" {
       create_iam_role = false
       iam_role_arn    = data.aws_iam_role.node_role.arn
     }
+  }
+}
+
+
+resource "aws_eks_access_policy_association" "iam_access" {
+  count = var.user_name != "" ? 1 : 0
+
+  cluster_name = module.eks.cluster_name
+  principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/${var.user_name}"
+  policy_arn = "AmazonEKSClusterAdminPolicy"
+  access_scope {
+    type = "cluster"
   }
 }
