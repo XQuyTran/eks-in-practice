@@ -20,6 +20,7 @@ on:
 env:
   TF_VERSION: 1.12.2
   AWS_REGION: ap-southeast-7
+  CLUSTER_NAME: deks
 
 permissions:
   contents: read
@@ -111,8 +112,7 @@ jobs:
 
       - name: Update kubeconfig
         run: |
-          ClusterName=$(terraform output -raw module.eks.cluster_name)
-          aws eks update-kubeconfig --name $ClusterName --region ${{ env.AWS_REGION }}
+          aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
 
       - name: Apply Kubernetes Resources
         run: kubectl apply -f k8s-manifests/
@@ -144,13 +144,11 @@ jobs:
         run: terraform init -backend-config="bucket=${{ vars.TF_BACKEND_BUCKET }}" -backend-config="key=${{ vars.TF_BACKEND_KEY }}" -backend-config="region=${{ env.AWS_REGION }}"
         working-directory: ./terraform
 
-      # - name: Update kubeconfig
-      #   run: |
-      #     ClusterName=$(terraform output -raw module.eks.cluster_name)
-      #     aws eks update-kubeconfig --name $ClusterName --region ${{ env.AWS_REGION }}
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
 
-      # - name: Delete Kubernetes Resources
-      #   run: kubectl delete -f k8s-manifests/ --ignore-not-found true
+      - name: Delete Kubernetes Resources
+        run: kubectl delete -f k8s-manifests/ --ignore-not-found true
 
       - name: Terraform Destroy
         run: terraform apply -destroy -auto-approve
