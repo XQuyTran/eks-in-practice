@@ -132,5 +132,5 @@ jobs:
         working-directory: ./terraform
 
       - name: Terraform Destroy
-        run: terraform apply -destroy -auto-approve
+        run: terraform apply -destroy -auto-approve ${{ github.event.inputs.tfargs }}
         working-directory: ./terraform
