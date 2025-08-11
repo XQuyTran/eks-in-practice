@@ -86,8 +86,7 @@ module "eks" {
   kubernetes_version                     = "1.33"
   iam_role_use_name_prefix               = false
   control_plane_subnet_ids               = data.aws_subnets.default_subnets.ids
-  # subnet_ids                             = [for subnet in aws_subnet.private : subnet.id]
-  subnet_ids             = data.aws_subnets.default_subnets.ids
+  subnet_ids                             = [for subnet in aws_subnet.private : subnet.id]
   endpoint_public_access = true
   iam_role_arn           = data.aws_iam_role.cluster_role.arn
 
